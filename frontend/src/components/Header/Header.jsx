@@ -23,6 +23,8 @@ import location from './img/location.svg'
 import { HashLink } from 'react-router-hash-link';
 import axios from 'axios'
 import { useFavoritesContext } from '../../FavoritesContext'
+import HeaderCard from '../HeaderCard'
+import MyZakazItem from '../MyzakazItem'
 
 export default function Header ({isActive, setIsActive, token}) {
 
@@ -176,6 +178,7 @@ export default function Header ({isActive, setIsActive, token}) {
           setZakaz(false)
           setLovaOn(false)
           setDanniyTwo(false)
+          
 
         }
       };
@@ -247,7 +250,8 @@ export default function Header ({isActive, setIsActive, token}) {
       const [emailPo, setEmailPo] = useState('')
 
 
-      const PreapUsers = () => {       
+      const PreapUsers = () => {    
+  
     
         axios.patch('http://127.0.0.1:8000/api/users/me/', {
 
@@ -306,6 +310,75 @@ export default function Header ({isActive, setIsActive, token}) {
       const { favorites } = useFavoritesContext();
 
 
+      const [HeaderTovar, setHeaderTovar] = useState([])
+
+      const [titleItem, setTitleItem] = useState('')
+
+
+      const PoiskItem = (event) => {
+        
+        const inputValue = event.target.value;
+
+        setTitleItem(inputValue);
+
+        if (inputValue.length === 0) {
+          setShowInfo(false);
+
+        } else {
+          setShowInfo(true);
+        }
+
+        event.preventDefault()
+  
+        axios.get(`http://127.0.0.1:8000/api/goods/?title=${titleItem}`, {
+  
+        headers: {
+            'Content-Type': 'application/json',
+            authorization: `Token ${localStorage.getItem('token')}`,
+        },
+  
+      })
+  
+      .then(res => {
+         setHeaderTovar(res.data.results)
+       })
+  
+      .catch(err => console.error(err))
+  
+      }
+
+      const [showInfo, setShowInfo] = useState(false);
+
+      const [MyZakaz, setMyZakaz] = useState([])
+
+      const [MyZakazCard, setMyZakazCard] = useState([])
+
+
+      useEffect(() => {
+
+        axios.get('http://127.0.0.1:8000/api/goods/order_history/', {
+
+        headers: {
+          "content-type": "application/json",
+          authorization: `Token ${tokenTwo}`,
+        }
+  
+      })
+
+      .then((res) => {
+
+        setMyZakaz(res.data);
+        // setMyZakazCard(res.data[0].items)
+
+       })
+
+       }, [])
+
+       console.log();
+
+
+
+
     return (
 
     <>
@@ -335,10 +408,51 @@ export default function Header ({isActive, setIsActive, token}) {
     
         
     
-                <form className={h.nav__form}>
+                <form className={h.nav__form} onChange={PoiskItem}>
+
                     <img src={poisk} alt="svg" className={h.nav__form_svg} />
-                    <input type="text" className={h.nav__form_poisk} placeholder='Наименование блюда' />
+
+      <input
+        type="text"
+        className={h.nav__form_poisk}
+        placeholder="Наименование блюда"
+        value={titleItem}
+        onChange={(event) => setTitleItem(event.target.value)}
+        // onBlur={() => setShowInfo(false)} 
+      />
+
+                    
+                    {showInfo && (
+
+                    <div className={h.nav__form__info}>
+
+                        <div className={h.basketTovar}>
+
+                        {HeaderTovar.length === 0 ? (
+
+                            <p className={h.basketTovar__text}>Искать на TYTEDA</p>
+
+                            ) : (
+
+                                HeaderTovar.map((info, index) => {
+                                    return (
+                                        <HeaderCard  setShowInfo={setShowInfo} {...info} key={index} />
+                                    );
+                                })                                
+
+                        )}
+
+                        </div>
+
+
+
+                    </div>
+
+                    ) }
+
                 </form>
+
+
     
     
     
@@ -440,11 +554,6 @@ export default function Header ({isActive, setIsActive, token}) {
             <div className={h.nav__user__nav} onClick={handleDanniy}>
                 <img src={admin1} alt="" />
                 <p>Мои данные</p>
-            </div>
-    
-            <div className={h.nav__user__nav} onClick={handleAddress}>
-                <img src={admin2} alt="" />
-                <p>Мои адреса</p>
             </div>
     
             <div className={h.nav__user__nav}
@@ -707,202 +816,12 @@ export default function Header ({isActive, setIsActive, token}) {
                 <img src={X} className={h.nav__danniy__header__exit} alt="exit" onClick={handleDanniyExit} />
     
         </div>
-    
-        <div className={h.nav__zakaz__item}>
-            
-            <div className={h.nav__zakaz__item__header}>
-                
-                <p className={h.nav__zakaz__item__header__data}>
-                20.04.2023
-                </p> 
-    
-                <Link to='' className={h.nav__zakaz__item__header__location}>
-                    <img src={location} alt="img" />
-                    Отследить заказ
-                </Link>
-    
-                <p className={h.nav__zakaz__item__header__sum}>
-                4 290 руб.
-                </p>
-    
-            </div>
-    
-    
-            <div className={h.nav__zakaz__item__tovar}>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-            </div>
-    
-        </div>
-    
-        <div className={h.nav__zakaz__item}>
-            
-            <div className={h.nav__zakaz__item__header}>
-                
-                <p className={h.nav__zakaz__item__header__data}>
-                20.04.2023
-                </p> 
-    
-                <Link to='' className={h.nav__zakaz__item__header__location}>
-                    <img src={location} alt="img" />
-                    Отследить заказ
-                </Link>
-    
-                <p className={h.nav__zakaz__item__header__sum}>
-                4 290 руб.
-                </p>
-    
-            </div>
-    
-    
-            <div className={h.nav__zakaz__item__tovar}>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-                <div className={h.nav__zakaz__item__tovar__item}>
-                    
-                    <img src={FotoKar} className={h.nav__zakaz__item__tovar__item__img} alt="img" />
-    
-                    <div>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        Пицца мясной пир
-                        </p>
-    
-                        <p className={h.nav__zakaz__item__tovar__item__text}>
-                        490 руб.
-                        </p>
-    
-                    </div>
-    
-                </div>
-    
-            </div>
-    
-        </div>        
+
+             { MyZakaz.map((info, index) => {
+                    return (
+                        <MyZakazItem MyZakazCard={MyZakazCard} {...info} key={index} />
+                );
+              })   }
     
     
         </div>
